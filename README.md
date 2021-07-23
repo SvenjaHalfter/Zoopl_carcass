@@ -5,7 +5,7 @@ The repository contains data files and the R script to perform the calculations 
 
 Data files include: 
 - **CTD** data on temperature, salinity, PAR and other parameters: CTD_stationPS1.csv and CTD_stationPS2.csv.
-- Remote-sensed data on **ocean colour** as a proxy for chlorophyll a: A20182442018273.L3m_MO_CHL_chlor_a_4km.nc
+- Remote-sensed data on **ocean colour** as a proxy for chlorophyll a: MODISA_chl.csv
 - Measured **chlorophyll a** in the upper water column (0-200 m): Chlorophyll_measured.csv
 - Sinking **particle flux** data from the sediment traps at SOTS (Southern Ocean Time Series site): IMOS_ABOS-SOTS_KF_20180322_SAZ47_FV01_SAZ47-20-2018_PARFLUX-Mark78H-21_END-20180322_C-20200416.nc
 - **POC/PON** content of the upper water column (0-200 m), measured by water fitration of CTD sampler water: POM_measured
