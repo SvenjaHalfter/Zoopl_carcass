@@ -12,6 +12,6 @@ Data files include:
 - **Prosome lengt** of the collected copepod *Neocalanus tonsus*: Prosome_length_sample.csv
 - The measurements of **copepod prosome length, dry weight and carbon content**: Copepod_carbon.csv
 - The measured **sinking velocity** by copepod carcasses: Sinking_speed.csv
-- Oxygen measurements every 4 hours over a time of 24 hours in two batches (replicates): batch_1 & batch_2
+- **Oxygen measurements** every 4 hours over a time of 24 hours in two batches (replicates): batch_1 & batch_2
 
 For questions or comments, please pull a request or contact me under Svenja.Halfter@utas.edu.au. 
