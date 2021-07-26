@@ -1,0 +1,25 @@
+Experiment,Chamber,size,magnification,Copepod 1,size ,magnification,Copepod 2,species
+1,A1,7.8,25,3.12,7.3,25,2.92,Neocalanus tonsus
+1,A2,8.3,25,3.32,8.4,25,3.36,Neocalanus tonsus
+1,A3,7.2,25,2.88,6.8,25,2.72,Neocalanus tonsus
+1,A4,8.5,25,3.4,7.7,25,3.08,Neocalanus tonsus
+1,B5,7.5,25,3,7.3,25,2.92,Neocalanus tonsus
+1,B6,7.9,25,3.16,7.2,25,2.88,Neocalanus tonsus
+1,B7,7.1,25,2.84,7.4,25,2.96,Neocalanus tonsus
+1,B8,7.2,25,2.88,7.3,25,2.92,Neocalanus tonsus
+1,C9,7.4,25,2.96,7.5,25,3,Neocalanus tonsus
+1,C10,7.5,25,3,7.6,25,3.04,Neocalanus tonsus
+1,C11,7.7,25,3.08,7.2,25,2.88,Neocalanus tonsus
+1,C12,7.9,25,3.16,8.2,25,3.28,Neocalanus tonsus
+2,A1,7.3,25,2.92,7.1,25,2.84,Neocalanus tonsus
+2,A2,7.2,25,2.88,7.3,25,2.92,Neocalanus tonsus
+2,A3,7.5,25,3,7.9,25,3.16,Neocalanus tonsus
+2,A4,8,25,3.2,8.2,25,3.28,Neocalanus tonsus
+2,B5,6.9,25,2.76,7.4,25,2.96,Neocalanus tonsus
+2,B6,8.6,25,3.44,7.1,25,2.84,Neocalanus tonsus
+2,B7,6.8,25,2.72,6.5,25,2.6,Neocalanus tonsus
+2,B8,9.2,25,3.68,7.2,25,2.88,Neocalanus tonsus
+2,C9,7.5,25,3,7.6,25,3.04,Neocalanus tonsus
+2,C10,8,25,3.2,7.2,25,2.88,Neocalanus tonsus
+2,C11,8.6,25,3.44,7.5,25,3,Neocalanus tonsus
+2,C12,7.7,25,3.08,7.2,25,2.88,Neocalanus tonsus
