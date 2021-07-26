@@ -1,10 +1,9 @@
 #Analysis for carcass publication
 
-#set working directory
 #setwd("C:/Users/shalfter/Documents/Outputs/2 Under_review/Carcasses/R/For_Github")
 
 #open libraries
-library(ncdf4) #opening ncdf files
+library(ncdf4) #opening ncdf files & extract variables
 library(tidyverse) #plotting and data wrangling
 library(reshape2) #melt function
 library(sp)#working with spatial data (Spatialpointsdataframe function)
@@ -333,8 +332,8 @@ plotC<-ggplot(data=speed, aes(size..mm., speed..m.min.))+
 
 plot_grid(plotA, plotB, plotC, labels= 'auto', nrow=1, label_size = 20)
 
-####Figure 4 - Decomposition####
-# Code by Emma Cavan 
+####Bacterial decomposition - calculations####
+# Code by Emma Cavan, shortened by Svenja Halfter
 #experiment on the 29092018 - batch 1
 setwd("~/Outputs/2 Under_review/Carcasses/R/For_Github/batch_1")
 t0 <- read.csv("t0.csv", header=T)
@@ -349,7 +348,7 @@ t8 <- read.csv("t8.csv", header=T)
 
 # create one data frame with all rows - all dates and stations
 resp1<-rbind(t0, t1, t2, t3, t4, t5, t6, t7, t8)
-# Add chamber column 
+# Add vial column 
 A01<-rep('A01', 4)
 A02<-rep('A02', 4)
 A03<-rep('A03', 4)
@@ -415,226 +414,113 @@ resp_mean$time<-rep(realtime, 24)
 resp_mean100<-resp_mean%>%
   filter(mean_resp>=100)
 
-#before plotting: test if regression is significant
+#regression significant?
 resp_mean100<- within(resp_mean100, code3<-(experiment:chamber)[drop = TRUE])
 resp.mod1 <-lmList(mean_resp ~ time|code3, na.action = na.omit, data = resp_mean100)
 summary(resp.mod1) # All vials show significant decrease in o2 with time
 
-
-# Get uptake as umol/h by using model coefficients
+# Get uptake as umol/L/h by using model coefficients
 coef.mod1 <- coef(resp.mod1)
 colnames(coef.mod1) <- c("c", "slope") # slope is umol/L/h or uM/h 
-# slope is umol/L/h or uM/h and c is the intercept
-# we now have a table with slope (m) and b (y-intercept) --> enough to draw a graph
+# slope = umol/L/h & c = intercept/start concentration
+coef.mod1$slope <- coef.mod1$slope * -1 # make slope positive
+coef.mod1$code3 <- rownames(coef.mod1)#add code in
 
-# make slope positive
-coef.mod1$slope <- coef.mod1$slope * -1
-head(coef.mod1)
-#c    slope
-#ex1_290918:A01 239.0818 4.376862
-#ex1_290918:A02 242.7336 6.353625
-#ex1_290918:A03 227.5821 6.301542
-#ex1_290918:A04 236.4223 4.539818
-#ex1_290918:B05 253.2211 5.678022
-#ex1_290918:B06 251.4057 6.368242
+#Mean uptake
+mean(coef.mod1$slope)# 6.65 umol/L/h
+sd(coef.mod1$slope) # 2.66 umol/L/h
 
-#add code in so we know what is what
-coef.mod1$code3 <- rownames(coef.mod1)
+#Statistics: Differences between experiments
 
-# remove non-sig slopes --> not necessary as all are significant 
-mean(coef.mod1$slope) 
-# mean uptake is [1] 6.648551 umol/L/h
-
-# function to calculate standard error of the mean
-std <- function(x) sd(x)/sqrt(length(x))
-
-std(coef.mod1$slope) 
-#[1] 0.5427785
-
-
-################# Is there a difference in O2 uptake between experiments? (absolut concentration)
-#t.test
+#Difference in O2 uptake? 
 Slopes1<- coef.mod1[1:12,2]
 Slopes2<- coef.mod1[13:24,2]
-
-t.test(Slopes1, Slopes2, paired = F, var.equal = F)
-
-#Welch Two Sample t-test
-
-#data:  Slopes1 and Slopes2
-#t = -2.9246, df = 14.664, p-value = 0.01066
-#alternative hypothesis: true difference in means is not equal to 0
-#95 percent confidence interval:
-#  -4.7661083 -0.7430212
-#sample estimates:
-#  mean of x mean of y 
-#5.271269  8.025833
-sd(Slopes1)
-#[1] 1.248236
-sd(Slopes2)
-#[1] 3.014497
-
-# There is a significant difference in oxygen uptake per liter and hour between the batches
+t.test(Slopes1, Slopes2, paired = F, var.equal = F) #sign difference between batches
 
 # compare O2 decrease to copepod biomass 
-cop<- read.csv("Copepods.csv", header=T)
-#add in coeff O2 uptakes
-cop$slopes <- coef.mod1$slope
-#add column of added copepod biomass
-cop$weight1 <- 0.46964*cop$Copepod.1-1.12306
-cop$weight2<- 0.46964*cop$Copepod.2-1.12306
-cop$weighttotal <- cop$weight1+cop$weight2
+setwd("C:/Users/shalfter/Documents/Outputs/2 Under_review/Carcasses/R/For_Github")
+cop<- read.csv("Copepods_respiration.csv", header=T)
+cop$slopes <- coef.mod1$slope #add in coeff O2 uptakes
 
-#install.packages("basicTrendline")
-library(basicTrendline)
-plot(cop$weighttotal, cop$slopes)
-trendline(cop$weighttotal, cop$slopes, model="line2P", show.Rpvalue=T)
-#R2 0.04, p=0.34
-#no relationship between oxygen decline and biomass (calculated from prosome length)
+#calculate copepod weights in respiration vials
+c<-lm((carbon$dry.weight.ug)~(carbon$length..mm.)); summary(c) 
+carbon_mod<-seq(0,0.6,0.1)
+met<-(469.64*carbon_mod)-1123.06 #put in calculated m and b
 
-#compare o2 decrease to c content
-cop$carbon1<-41.638*cop$Copepod.1+112.930
-cop$carbon2<-41.638*cop$Copepod.2+112.930
+cop$weigth1 <- 469.64*cop$Copepod.1-1123.06
+cop$weigth2<- 469.64*cop$Copepod.2-1123.06
+cop$weigthtotal <- cop$weigth1+cop$weigth2
+#check if O2 resp is dependent on copepod biomass in vials
+c<-lm((cop$slopes)~(cop$weigthtotal)); summary(c) #nope
+
+#calculate copepod carbon in respiration vials
+cop$carbon1<-41.638*cop$Copepod.1+23.523
+cop$carbon2<-41.638*cop$Copepod.2+23.523
 cop$carbontotal<- cop$carbon1+cop$carbon2
+#check if O2 resp is dependent on copepod carbon in vials
+c<-lm((cop$slopes)~(cop$carbontotal)); summary(c) #nope
 
-plot(cop$carbontotal, cop$slopes)
-trendline(cop$carbontotal, cop$slopes, model="line2P", show.Rpvalue=T)
-# R2 0.04, p=0.34
-#no relationship between oxygen decline and carbon content (calculated from prosome lenght)
-# both makes sense, as both parameter are derived from the same thing
+#Difference between copepod carbon in the two batches?
+t.test(cop$carbontotal[1:12], cop$carbontotal[13:24], paired = F, var.equal = F)#nope
+#Difference between prosome lengths in the two batches?
+t.test(cop$weigthtotal[1:12], cop$weigthtotal[13:24], paired = F, var.equal = F)#nope
+#same carcass content in terms of carbon and copepod weigth, but different O2 uptake
 
-#compare carbon of different experiments
-carbon1<- cop[1:12,14:15]
-carbon2<- cop[13:24,14:15]
-
-carbon11<-c(carbon1$carbon1,carbon1$carbon2)
-carbon22<-c(carbon2$carbon1,carbon2$carbon2)
-t.test(carbon11, carbon22, paired = F, var.equal = F)
-#not different!
-
-#compare prosome length of different experiments 
-length1<- cop[1:12,c(5,8)]
-length2<- cop[13:24,c(5,8)]
-
-length11<-c(length1$Copepod.1, length1$Copepod.2)
-length22<-c(length2$Copepod.1, length2$Copepod.2)
-t.test(length11, length22, paired=F, var.equal = F)
-#not different
-
-#same content in terms of carbon and copepods, but different O2 uptake
-#used to plot
-
+####Figure 4 - Decomposition####
 resp_mean100$time <- as.factor(resp_mean100$time)
-resp_mean100 <- within(resp_mean100, code3<-(experiment:time)[drop = TRUE])
-
-#Take mean of oxygen concentration for each t and measurement time
-o2 <- aggregate(resp_mean100$o2, by=list(resp_mean100$code3), mean)
-std <- function(x) sd(x)/sqrt(length(x)) # function for std error of the mean
-o2.se <- aggregate(resp_mean100$o2, by=list(resp_mean100$code3), std) # std error o2 per temp
+o2<-resp_mean100%>%
+  group_by(experiment,time)%>%
+  summarise(mean_resp_sum=mean(mean_resp, na.rm=T),sd_resp =sd(mean_resp, na.rm=T))
 
 # normalise to first o2 concentration for each temperature to compare on plot
-o2$norm <- c((o2$x[1:9]/o2$x[1]), (o2$x[10:18]/o2$x[10]))
+o2$norm <- c((o2$mean_resp_sum[1:9]/o2$mean_resp_sum[1]), (o2$mean_resp_sum[10:18]/o2$mean_resp_sum[10]))
+o2$norm.se <- o2$sd_resp/100
 
-
-# 'normalise' std error
-o2.se$norm <- o2.se$x/100
-
-#add columns back in
-o2$time <- rep(c(0,3,6,9,12,15,18,21,24), 2)
-o2$experiment <- c(rep('29/09/18', 9), rep('01/10/18', 9))
-o2.se$time <- rep(c(0,3,6,9,12,15,18,21,24), 2)
-o2.se$experiment <- c(rep('29/09/18', 9), rep('01/10/18', 9))
-
-
-#################plotting
-
-Fig2<-plot_grid(plotA_final, plotB_final, plotC_final, labels= 'AUTO')
-
-Fig2_extra
-#Renaming column
-names(o2)[names(o2)=="experiment"]<-"Experiment"
-o2$sd <-o2.se$norm
-
-plotD<-ggplot(data=o2, aes(x=time, y=norm, col=Experiment))+
+ggplot(data=o2, aes(x=time, y=norm, col=experiment))+
   geom_point()+
-  geom_line()+
-  geom_errorbar(aes(ymin=norm-sd, ymax=norm+sd), width=.2, position=position_dodge(0.05))+
-  scale_color_manual(values=c("seagreen4","royalblue4"))+
-  labs(x='Time (hours)', y=expression(bold(paste('Normalised ',O[2],' concentration'))))+
+
+  geom_errorbar(aes(ymin=norm-norm.se, ymax=norm+norm.se), width=.2, 
+                position=position_dodge(0.05))+
+  scale_color_manual(name="Experiment",values=c("coral","darkslategray"),
+                     labels = c("I", "II"))+
+  labs(x='Time (hours)', y=expression(paste('Normalised ',O[2],' concentration')))+
   theme_cowplot()+
-  theme(text=element_text(family="Times New Roman", face="bold", size=14))+
-  theme(legend.position=c(0.05,0.2))
+  theme(text=element_text(size=14),legend.position=c(0.8,0.8))
 
-Fig2_extra<-plot_grid(plotA_final, plotB_final, plotC_final, plotD, labels= 'AUTO')
-Fig2_extra
-ggsave("Figure2extra.png", Fig2_extra, width = 1280/72, height = 720/72, dpi = 72)
+####Calculation of k####
 
-
-
-#calculating the oxygen consumption from umol/L and h to umol/h by multiplying with volume
+#oxygen consumption from umol/L/h to umol/h by multiplying with volume
 volume<- c(0.01,0.02,0.02, 0.02, 0.01, 0.02, 0.02, 0.02, 0.01, 0.02, 0.02, 0.02)
 coef.mod1$volume <-volume
 coef.mod1$consumption<- coef.mod1$slope*coef.mod1$volume
-#now we have O2 consumption in umol/h
-mean(coef.mod1$consumption)
-#[1] 0.1151117 umol h-1
-sd(coef.mod1$consumption)
-#[1] 0.04440586
+#result: O2 consumption in umol/h
+mean(coef.mod1$consumption) #0.115 umol h-1
+sd(coef.mod1$consumption) #0.044
 
-mean(coef.mod1$consumption[1:12])
-mean(coef.mod1$consumption[13:24])
-#[1] 0.095036
-#[1] 0.1347879
+mean(coef.mod1$consumption[1:12])#[1] 0.095036
+mean(coef.mod1$consumption[13:24])#[1] 0.1347879
 sd(coef.mod1$consumption[1:12])
 sd(coef.mod1$consumption[13:24])
 
 coef.mod1$copug <- cop$carbontotal
 coef.mod1$copumol<-coef.mod1$copug/12.0107
-
+#calculating k
 coef.mod1$k<-coef.mod1$consumption/coef.mod1$copumol*24
 
-mean(coef.mod1$k)
-#[1] 0.06915749
-sd(coef.mod1$k)
-#[1] 0.02595325
-k1<-coef.mod1$k[1:12]
-k2<-coef.mod1$k[13:24]
+mean(coef.mod1$k)#0.11
+sd(coef.mod1$k)#0.04
+#Difference in k between replicates?
+t.test(coef.mod1$k[1:12], coef.mod1$k[13:24], paired=F, var.equal = F)#yes!
 
-t.test(k1, k2, paired=F, var.equal = F)
-#data:  k1 and k2
-#t = -2.5006, df = 21.637, p-value = 0.02049
-#alternative hypothesis: true difference in means is not equal to 0
-#95 percent confidence interval:
-#  -0.043749951 -0.004059664
-#sample estimates:
-#  mean of x  mean of y 
-#0.05720509 0.08110989
-
-#microbial turnover rates k (d-1)
-mean(coef.mod1$k[1:12])
-#[1] 0.05720509
-sd(coef.mod1$k[1:12])
-#[1] 0.02184795
-max(coef.mod1$k [1:12])
-#[1] 0.07914303
-min(coef.mod1$k[1:12])
-#[1] 0.01466979
-
-mean(coef.mod1$k[13:24])
-#[1] 0.08110989
-sd(coef.mod1$k[13:24])
-#[1] 0.02488671
-max(coef.mod1$k [13:24])
-#[1] 0.1134663
-min(coef.mod1$k[13:24])
-#[1] 0.03675046
-
-mean(coef.mod1$k)
-#[1] 0.06915749
-sd(coef.mod1$k)
-#[1] 0.02595325
-
-
+#k (d-1) for both replicates
+coef.mod1%>%
+  filter(grepl("^ex1", code3))%>%
+  summarise(mean=mean(k,na.rm=T),sd=sd(k,na.rm=T),max=max(k,na.rm=T),
+            min=min(k,na.rm=T))
+coef.mod1%>%
+  filter(grepl("^ex2", code3))%>%
+  summarise(mean=mean(k,na.rm=T),sd=sd(k,na.rm=T),max=max(k,na.rm=T),
+            min=min(k,na.rm=T))
 
 ####Figure 5 - Deep POC flux####
 ncin <- nc_open("IMOS_ABOS-SOTS_KF_20180322_SAZ47_FV01_SAZ47-20-2018_PARFLUX-Mark78H-21_END-20180322_C-20200416.nc")
@@ -679,5 +565,178 @@ SOTS%>%
   theme(legend.position = c(0.05,0.8),axis.title = element_text(size=16),
         text=element_text(size=16))
 
+####Sensitivity analysis####
+
+#PS1 Average flux
+w = 797 # sinking rates
+poc = 75.5 #carbon standing stock
+k = 0.06 # turnover rate to 2 significant figures or one decimal place
+z = w/k # z*
+
+#1000 m
+x05surf = (0.05 * poc) * exp((100-1000)/z) 
+x10surf = (0.10 * poc) * exp((100-1000)/z) 
+x25surf = (0.25 * poc) * exp((100-1000)/z) 
+x35surf = (0.35 * poc) * exp((100-1000)/z) 
+
+x05deep = (0.05 * poc) * exp((600-1000)/z) 
+x10deep = (0.10 * poc) * exp((600-1000)/z) 
+x25deep = (0.25 * poc) * exp((600-1000)/z) 
+x35deep = (0.35 * poc) * exp((600-1000)/z) 
 
 
+#4500 m
+x05surf = (0.05 * poc) * exp((100-4500)/z) 
+x10surf = (0.10 * poc) * exp((100-4500)/z) 
+x25surf = (0.25 * poc) * exp((100-4500)/z) 
+x35surf = (0.35 * poc) * exp((100-4500)/z) 
+
+x05deep = (0.05 * poc) * exp((600-4500)/z) 
+x10deep = (0.10 * poc) * exp((600-4500)/z) 
+x25deep = (0.25 * poc) * exp((600-4500)/z) 
+x35deep = (0.35 * poc) * exp((600-4500)/z) 
+
+#PS1 maximum flux
+w = 970 # maximum sinking rate
+poc = 82.27 #maximum carbon standing stock
+k = 0.04 # turnover rate to 2 significant figures or one decimal place
+z = w/k # z*
+
+#1000 m
+x05surf = (0.05 * poc) * exp((100-1000)/z) 
+x10surf = (0.10 * poc) * exp((100-1000)/z) 
+x25surf = (0.25 * poc) * exp((100-1000)/z) 
+x35surf = (0.35 * poc) * exp((100-1000)/z) 
+
+x05deep = (0.05 * poc) * exp((600-1000)/z) 
+x10deep = (0.10 * poc) * exp((600-1000)/z) 
+x25deep = (0.25 * poc) * exp((600-1000)/z) 
+x35deep = (0.35 * poc) * exp((600-1000)/z) 
+
+
+#4500 m
+x05surf = (0.05 * poc) * exp((100-4500)/z) 
+x10surf = (0.10 * poc) * exp((100-4500)/z) 
+x25surf = (0.25 * poc) * exp((100-4500)/z) 
+x35surf = (0.35 * poc) * exp((100-4500)/z) 
+
+x05deep = (0.05 * poc) * exp((600-4500)/z) 
+x10deep = (0.10 * poc) * exp((600-4500)/z) 
+x25deep = (0.25 * poc) * exp((600-4500)/z) 
+x35deep = (0.35 * poc) * exp((600-4500)/z) 
+
+#PS1 minimum flux
+w = 624 # minimum sinking rate
+poc = 68.71 #minimum carbon standing stock
+k = 0.08 # turnover rate to 2 significant figures or one decimal place
+z = w/k # z*
+
+#1000 m
+x05surf = (0.05 * poc) * exp((100-1000)/z) 
+x10surf = (0.10 * poc) * exp((100-1000)/z) 
+x25surf = (0.25 * poc) * exp((100-1000)/z) 
+x35surf = (0.35 * poc) * exp((100-1000)/z) 
+
+x05deep = (0.05 * poc) * exp((600-1000)/z) 
+x10deep = (0.10 * poc) * exp((600-1000)/z) 
+x25deep = (0.25 * poc) * exp((600-1000)/z) 
+x35deep = (0.35 * poc) * exp((600-1000)/z) 
+
+
+#4500 m
+x05surf = (0.05 * poc) * exp((100-4500)/z) 
+x10surf = (0.10 * poc) * exp((100-4500)/z) 
+x25surf = (0.25 * poc) * exp((100-4500)/z) 
+x35surf = (0.35 * poc) * exp((100-4500)/z) 
+
+x05deep = (0.05 * poc) * exp((600-4500)/z) 
+x10deep = (0.10 * poc) * exp((600-4500)/z) 
+x25deep = (0.25 * poc) * exp((600-4500)/z) 
+x35deep = (0.35 * poc) * exp((600-4500)/z) 
+
+#PS2 average rates
+w = 671 # sinking rates
+poc = 70 #carbon standing stock
+k = 0.06 # turnover rate to 2 significant figures or one decimal place
+z = w/k # z*
+
+#1000 m
+x05surf = (0.05 * poc) * exp((100-1000)/z) 
+x10surf = (0.10 * poc) * exp((100-1000)/z) 
+x25surf = (0.25 * poc) * exp((100-1000)/z) 
+x35surf = (0.35 * poc) * exp((100-1000)/z) 
+
+x05deep = (0.05 * poc) * exp((600-1000)/z) 
+x10deep = (0.10 * poc) * exp((600-1000)/z) 
+x25deep = (0.25 * poc) * exp((600-1000)/z) 
+x35deep = (0.35 * poc) * exp((600-1000)/z) 
+
+
+#4500 m
+x05surf = (0.05 * poc) * exp((100-4500)/z) 
+x10surf = (0.10 * poc) * exp((100-4500)/z) 
+x25surf = (0.25 * poc) * exp((100-4500)/z) 
+x35surf = (0.35 * poc) * exp((100-4500)/z) 
+
+x05deep = (0.05 * poc) * exp((600-4500)/z) 
+x10deep = (0.10 * poc) * exp((600-4500)/z) 
+x25deep = (0.25 * poc) * exp((600-4500)/z) 
+x35deep = (0.35 * poc) * exp((600-4500)/z) 
+
+#PS2 maximum rates
+w = 844 # sinking rates
+poc = 92.19 #carbon standing stock
+k = 0.04 # turnover rate to 2 significant figures or one decimal place
+z = w/k # z*
+
+#1000 m
+x05surf = (0.05 * poc) * exp((100-1000)/z) 
+x10surf = (0.10 * poc) * exp((100-1000)/z) 
+x25surf = (0.25 * poc) * exp((100-1000)/z) 
+x35surf = (0.35 * poc) * exp((100-1000)/z) 
+
+x05deep = (0.05 * poc) * exp((600-1000)/z) 
+x10deep = (0.10 * poc) * exp((600-1000)/z) 
+x25deep = (0.25 * poc) * exp((600-1000)/z) 
+x35deep = (0.35 * poc) * exp((600-1000)/z) 
+
+
+#4500 m
+x05surf = (0.05 * poc) * exp((100-4500)/z) 
+x10surf = (0.10 * poc) * exp((100-4500)/z) 
+x25surf = (0.25 * poc) * exp((100-4500)/z) 
+x35surf = (0.35 * poc) * exp((100-4500)/z) 
+
+x05deep = (0.05 * poc) * exp((600-4500)/z) 
+x10deep = (0.10 * poc) * exp((600-4500)/z) 
+x25deep = (0.25 * poc) * exp((600-4500)/z) 
+x35deep = (0.35 * poc) * exp((600-4500)/z) 
+
+#PS2 minimum rates
+w = 498 # sinking rates
+poc = 47.85 #carbon standing stock
+k = 0.06 # turnover rate to 2 significant figures or one decimal place
+z = w/k # z*
+
+#1000 m
+x05surf = (0.05 * poc) * exp((100-1000)/z) 
+x10surf = (0.10 * poc) * exp((100-1000)/z) 
+x25surf = (0.25 * poc) * exp((100-1000)/z) 
+x35surf = (0.35 * poc) * exp((100-1000)/z) 
+
+x05deep = (0.05 * poc) * exp((600-1000)/z) 
+x10deep = (0.10 * poc) * exp((600-1000)/z) 
+x25deep = (0.25 * poc) * exp((600-1000)/z) 
+x35deep = (0.35 * poc) * exp((600-1000)/z) 
+
+
+#4500 m
+x05surf = (0.05 * poc) * exp((100-4500)/z) 
+x10surf = (0.10 * poc) * exp((100-4500)/z) 
+x25surf = (0.25 * poc) * exp((100-4500)/z) 
+x35surf = (0.35 * poc) * exp((100-4500)/z) 
+
+x05deep = (0.05 * poc) * exp((600-4500)/z) 
+x10deep = (0.10 * poc) * exp((600-4500)/z) 
+x25deep = (0.25 * poc) * exp((600-4500)/z) 
+x35deep = (0.35 * poc) * exp((600-4500)/z) 
