@@ -272,6 +272,7 @@ Cstock<-length%>%
 Cstock$PS1<-(Cstock$PS1/1000)*2  #ug to mg and accounting for 0.5 m2 diameter of the net
 Cstock$PS2<-(Cstock$PS2/1000)*2
 
+Cstock
 
 
 
@@ -329,8 +330,11 @@ plotC<-ggplot(data=speed, aes(size..mm., speed..m.min.))+
   theme(text=element_text(size=16), axis.text = element_text(size=20),
         axis.title = element_text(size=20))
 
-
 plot_grid(plotA, plotB, plotC, labels= 'auto', nrow=1, label_size = 20)
+####Calculation sinking speed in m/d####
+speed%>%
+  filter(Station==2)%>%
+  summarise(mean_speed=mean(speed..m.min.)*60*24, sd_speed=sd(speed..m.min.)*60*24)
 
 ####Bacterial decomposition - calculations####
 # Code by Emma Cavan, shortened by Svenja Halfter
@@ -567,176 +571,97 @@ SOTS%>%
 
 ####Sensitivity analysis####
 
-#PS1 Average flux
-w = 797 # sinking rates
-poc = 75.5 #carbon standing stock
-k = 0.06 # turnover rate to 2 significant figures or one decimal place
-z = w/k # z*
+#"Control" scenario
+w_PS1=797 #sinking speed
+w_PS2=671
+poc_PS1=75.5 #carbon standing stock
+poc_PS2=70
+b_PS1=0.021 #mortality rates
+b_PS2=0.023
+k=0.11  #bacterial decomposition
+z_PS1=w_PS1/k #z*
+z_PS2=w_PS2/k
 
-#1000 m
-x05surf = (0.05 * poc) * exp((100-1000)/z) 
-x10surf = (0.10 * poc) * exp((100-1000)/z) 
-x25surf = (0.25 * poc) * exp((100-1000)/z) 
-x35surf = (0.35 * poc) * exp((100-1000)/z) 
+(b_PS1* poc_PS1) * exp((100-1000)/z_PS1)
+(b_PS1* poc_PS1) * exp((100-2000)/z_PS1)
+(b_PS1* poc_PS1) * exp((100-3800)/z_PS1)
 
-x05deep = (0.05 * poc) * exp((600-1000)/z) 
-x10deep = (0.10 * poc) * exp((600-1000)/z) 
-x25deep = (0.25 * poc) * exp((600-1000)/z) 
-x35deep = (0.35 * poc) * exp((600-1000)/z) 
+(b_PS2* poc_PS2) * exp((100-1000)/z_PS2)
+(b_PS2* poc_PS2) * exp((100-2000)/z_PS2)
+(b_PS2* poc_PS2) * exp((100-3800)/z_PS2)
 
+# "Higher mortality" scenario
+w_PS1=797 #sinking speed
+w_PS2=671
+poc_PS1=75.5 #carbon standing stock
+poc_PS2=70
+b_PS1=0.17 #mortality rates
+b_PS2=0.17
+k=0.11  #bacterial decomposition
+z_PS1=w_PS1/k #z*
+z_PS2=w_PS2/k
 
-#4500 m
-x05surf = (0.05 * poc) * exp((100-4500)/z) 
-x10surf = (0.10 * poc) * exp((100-4500)/z) 
-x25surf = (0.25 * poc) * exp((100-4500)/z) 
-x35surf = (0.35 * poc) * exp((100-4500)/z) 
+(b_PS1* poc_PS1) * exp((100-1000)/z_PS1)
+(b_PS1* poc_PS1) * exp((100-2000)/z_PS1)
+(b_PS1* poc_PS1) * exp((100-3800)/z_PS1)
 
-x05deep = (0.05 * poc) * exp((600-4500)/z) 
-x10deep = (0.10 * poc) * exp((600-4500)/z) 
-x25deep = (0.25 * poc) * exp((600-4500)/z) 
-x35deep = (0.35 * poc) * exp((600-4500)/z) 
+(b_PS2* poc_PS2) * exp((100-1000)/z_PS2)
+(b_PS2* poc_PS2) * exp((100-2000)/z_PS2)
+(b_PS2* poc_PS2) * exp((100-3800)/z_PS2)
 
-#PS1 maximum flux
-w = 970 # maximum sinking rate
-poc = 82.27 #maximum carbon standing stock
-k = 0.04 # turnover rate to 2 significant figures or one decimal place
-z = w/k # z*
+#"Higher microbial decomposition" scenario
+w_PS1=797 #sinking speed
+w_PS2=671
+poc_PS1=75.5 #carbon standing stock
+poc_PS2=70
+b_PS1=0.021 #mortality rates
+b_PS2=0.023
+k=0.35  #bacterial decomposition
+z_PS1=w_PS1/k #z*
+z_PS2=w_PS2/k
 
-#1000 m
-x05surf = (0.05 * poc) * exp((100-1000)/z) 
-x10surf = (0.10 * poc) * exp((100-1000)/z) 
-x25surf = (0.25 * poc) * exp((100-1000)/z) 
-x35surf = (0.35 * poc) * exp((100-1000)/z) 
+(b_PS1* poc_PS1) * exp((100-1000)/z_PS1)
+(b_PS1* poc_PS1) * exp((100-2000)/z_PS1)
+(b_PS1* poc_PS1) * exp((100-3800)/z_PS1)
 
-x05deep = (0.05 * poc) * exp((600-1000)/z) 
-x10deep = (0.10 * poc) * exp((600-1000)/z) 
-x25deep = (0.25 * poc) * exp((600-1000)/z) 
-x35deep = (0.35 * poc) * exp((600-1000)/z) 
+(b_PS2* poc_PS2) * exp((100-1000)/z_PS2)
+(b_PS2* poc_PS2) * exp((100-2000)/z_PS2)
+(b_PS2* poc_PS2) * exp((100-3800)/z_PS2)
 
+#"Lower microbial decomposition" scenario
+w_PS1=797 #sinking speed
+w_PS2=671
+poc_PS1=75.5 #carbon standing stock
+poc_PS2=70
+b_PS1=0.021 #mortality rates
+b_PS2=0.023
+k=0.02  #bacterial decomposition
+z_PS1=w_PS1/k #z*
+z_PS2=w_PS2/k
 
-#4500 m
-x05surf = (0.05 * poc) * exp((100-4500)/z) 
-x10surf = (0.10 * poc) * exp((100-4500)/z) 
-x25surf = (0.25 * poc) * exp((100-4500)/z) 
-x35surf = (0.35 * poc) * exp((100-4500)/z) 
+(b_PS1* poc_PS1) * exp((100-1000)/z_PS1)
+(b_PS1* poc_PS1) * exp((100-2000)/z_PS1)
+(b_PS1* poc_PS1) * exp((100-3800)/z_PS1)
 
-x05deep = (0.05 * poc) * exp((600-4500)/z) 
-x10deep = (0.10 * poc) * exp((600-4500)/z) 
-x25deep = (0.25 * poc) * exp((600-4500)/z) 
-x35deep = (0.35 * poc) * exp((600-4500)/z) 
+(b_PS2* poc_PS2) * exp((100-1000)/z_PS2)
+(b_PS2* poc_PS2) * exp((100-2000)/z_PS2)
+(b_PS2* poc_PS2) * exp((100-3800)/z_PS2)
 
-#PS1 minimum flux
-w = 624 # minimum sinking rate
-poc = 68.71 #minimum carbon standing stock
-k = 0.08 # turnover rate to 2 significant figures or one decimal place
-z = w/k # z*
+#"Lower sinking velocity" scenario
+w_PS1=107 #sinking speed
+w_PS2=107
+poc_PS1=75.5 #carbon standing stock
+poc_PS2=70
+b_PS1=0.021 #mortality rates
+b_PS2=0.023
+k=0.11  #bacterial decomposition
+z_PS1=w_PS1/k #z*
+z_PS2=w_PS2/k
 
-#1000 m
-x05surf = (0.05 * poc) * exp((100-1000)/z) 
-x10surf = (0.10 * poc) * exp((100-1000)/z) 
-x25surf = (0.25 * poc) * exp((100-1000)/z) 
-x35surf = (0.35 * poc) * exp((100-1000)/z) 
+(b_PS1* poc_PS1) * exp((100-1000)/z_PS1)
+(b_PS1* poc_PS1) * exp((100-2000)/z_PS1)
+(b_PS1* poc_PS1) * exp((100-3800)/z_PS1)
 
-x05deep = (0.05 * poc) * exp((600-1000)/z) 
-x10deep = (0.10 * poc) * exp((600-1000)/z) 
-x25deep = (0.25 * poc) * exp((600-1000)/z) 
-x35deep = (0.35 * poc) * exp((600-1000)/z) 
-
-
-#4500 m
-x05surf = (0.05 * poc) * exp((100-4500)/z) 
-x10surf = (0.10 * poc) * exp((100-4500)/z) 
-x25surf = (0.25 * poc) * exp((100-4500)/z) 
-x35surf = (0.35 * poc) * exp((100-4500)/z) 
-
-x05deep = (0.05 * poc) * exp((600-4500)/z) 
-x10deep = (0.10 * poc) * exp((600-4500)/z) 
-x25deep = (0.25 * poc) * exp((600-4500)/z) 
-x35deep = (0.35 * poc) * exp((600-4500)/z) 
-
-#PS2 average rates
-w = 671 # sinking rates
-poc = 70 #carbon standing stock
-k = 0.06 # turnover rate to 2 significant figures or one decimal place
-z = w/k # z*
-
-#1000 m
-x05surf = (0.05 * poc) * exp((100-1000)/z) 
-x10surf = (0.10 * poc) * exp((100-1000)/z) 
-x25surf = (0.25 * poc) * exp((100-1000)/z) 
-x35surf = (0.35 * poc) * exp((100-1000)/z) 
-
-x05deep = (0.05 * poc) * exp((600-1000)/z) 
-x10deep = (0.10 * poc) * exp((600-1000)/z) 
-x25deep = (0.25 * poc) * exp((600-1000)/z) 
-x35deep = (0.35 * poc) * exp((600-1000)/z) 
-
-
-#4500 m
-x05surf = (0.05 * poc) * exp((100-4500)/z) 
-x10surf = (0.10 * poc) * exp((100-4500)/z) 
-x25surf = (0.25 * poc) * exp((100-4500)/z) 
-x35surf = (0.35 * poc) * exp((100-4500)/z) 
-
-x05deep = (0.05 * poc) * exp((600-4500)/z) 
-x10deep = (0.10 * poc) * exp((600-4500)/z) 
-x25deep = (0.25 * poc) * exp((600-4500)/z) 
-x35deep = (0.35 * poc) * exp((600-4500)/z) 
-
-#PS2 maximum rates
-w = 844 # sinking rates
-poc = 92.19 #carbon standing stock
-k = 0.04 # turnover rate to 2 significant figures or one decimal place
-z = w/k # z*
-
-#1000 m
-x05surf = (0.05 * poc) * exp((100-1000)/z) 
-x10surf = (0.10 * poc) * exp((100-1000)/z) 
-x25surf = (0.25 * poc) * exp((100-1000)/z) 
-x35surf = (0.35 * poc) * exp((100-1000)/z) 
-
-x05deep = (0.05 * poc) * exp((600-1000)/z) 
-x10deep = (0.10 * poc) * exp((600-1000)/z) 
-x25deep = (0.25 * poc) * exp((600-1000)/z) 
-x35deep = (0.35 * poc) * exp((600-1000)/z) 
-
-
-#4500 m
-x05surf = (0.05 * poc) * exp((100-4500)/z) 
-x10surf = (0.10 * poc) * exp((100-4500)/z) 
-x25surf = (0.25 * poc) * exp((100-4500)/z) 
-x35surf = (0.35 * poc) * exp((100-4500)/z) 
-
-x05deep = (0.05 * poc) * exp((600-4500)/z) 
-x10deep = (0.10 * poc) * exp((600-4500)/z) 
-x25deep = (0.25 * poc) * exp((600-4500)/z) 
-x35deep = (0.35 * poc) * exp((600-4500)/z) 
-
-#PS2 minimum rates
-w = 498 # sinking rates
-poc = 47.85 #carbon standing stock
-k = 0.06 # turnover rate to 2 significant figures or one decimal place
-z = w/k # z*
-
-#1000 m
-x05surf = (0.05 * poc) * exp((100-1000)/z) 
-x10surf = (0.10 * poc) * exp((100-1000)/z) 
-x25surf = (0.25 * poc) * exp((100-1000)/z) 
-x35surf = (0.35 * poc) * exp((100-1000)/z) 
-
-x05deep = (0.05 * poc) * exp((600-1000)/z) 
-x10deep = (0.10 * poc) * exp((600-1000)/z) 
-x25deep = (0.25 * poc) * exp((600-1000)/z) 
-x35deep = (0.35 * poc) * exp((600-1000)/z) 
-
-
-#4500 m
-x05surf = (0.05 * poc) * exp((100-4500)/z) 
-x10surf = (0.10 * poc) * exp((100-4500)/z) 
-x25surf = (0.25 * poc) * exp((100-4500)/z) 
-x35surf = (0.35 * poc) * exp((100-4500)/z) 
-
-x05deep = (0.05 * poc) * exp((600-4500)/z) 
-x10deep = (0.10 * poc) * exp((600-4500)/z) 
-x25deep = (0.25 * poc) * exp((600-4500)/z) 
-x35deep = (0.35 * poc) * exp((600-4500)/z) 
+(b_PS2* poc_PS2) * exp((100-1000)/z_PS2)
+(b_PS2* poc_PS2) * exp((100-2000)/z_PS2)
+(b_PS2* poc_PS2) * exp((100-3800)/z_PS2)
