@@ -331,10 +331,16 @@ plotC<-ggplot(data=speed, aes(size..mm., speed..m.min.))+
         axis.title = element_text(size=20))
 
 plot_grid(plotA, plotB, plotC, labels= 'auto', nrow=1, label_size = 20)
+#D prosome length vs. dry weigth (not plotted)
+c<-lm((carbon$dry.weight.ug)~(carbon$length..mm.)); summary(c) 
+carbon_mod<-seq(0,0.6,0.1)
+met<-469.64*carbon_mod-1123.06 #put in calculated m and b
+
 ####Calculation sinking speed in m/d####
 speed%>%
-  filter(Station==2)%>%
-  summarise(mean_speed=mean(speed..m.min.)*60*24, sd_speed=sd(speed..m.min.)*60*24)
+  group_by(Station)%>%
+  summarise(mean_speed=mean(speed..m.min.)*60*24, sd_speed=sd(speed..m.min.)*60*24, 
+            max_speed=max(speed..m.min.)*60*24, min_speed=min(speed..m.min.)*60*24)
 
 ####Bacterial decomposition - calculations####
 # Code by Emma Cavan, shortened by Svenja Halfter
@@ -414,13 +420,16 @@ resp_mean<-resp%>%
 realtime <- c(0, 3, 6, 9, 12, 15, 18, 21, 24) # hours
 resp_mean$time<-rep(realtime, 24)
 
+#account for control (on average decline of 2.8 % - related to free microbial respiration)
+resp_mean$mean_minus_control<-resp_mean$mean_resp*0.972
+
 #Remove values below 100 umol, because we don't want anaerobic processes
 resp_mean100<-resp_mean%>%
-  filter(mean_resp>=100)
+  filter(mean_minus_control>=100)
 
 #regression significant?
 resp_mean100<- within(resp_mean100, code3<-(experiment:chamber)[drop = TRUE])
-resp.mod1 <-lmList(mean_resp ~ time|code3, na.action = na.omit, data = resp_mean100)
+resp.mod1 <-lmList(mean_minus_control ~ time|code3, na.action = na.omit, data = resp_mean100)
 summary(resp.mod1) # All vials show significant decrease in o2 with time
 
 # Get uptake as umol/L/h by using model coefficients
@@ -431,8 +440,8 @@ coef.mod1$slope <- coef.mod1$slope * -1 # make slope positive
 coef.mod1$code3 <- rownames(coef.mod1)#add code in
 
 #Mean uptake
-mean(coef.mod1$slope)# 6.65 umol/L/h
-sd(coef.mod1$slope) # 2.66 umol/L/h
+mean(coef.mod1$slope)# 6.37 umol/L/h
+sd(coef.mod1$slope) # 2.52 umol/L/h
 
 #Statistics: Differences between experiments
 
@@ -474,20 +483,27 @@ t.test(cop$weigthtotal[1:12], cop$weigthtotal[13:24], paired = F, var.equal = F)
 resp_mean100$time <- as.factor(resp_mean100$time)
 o2<-resp_mean100%>%
   group_by(experiment,time)%>%
-  summarise(mean_resp_sum=mean(mean_resp, na.rm=T),sd_resp =sd(mean_resp, na.rm=T))
+  summarise(mean_resp_sum=mean(mean_minus_control, na.rm=T),sd_resp =sd(mean_minus_control, na.rm=T))
 
 # normalise to first o2 concentration for each temperature to compare on plot
 o2$norm <- c((o2$mean_resp_sum[1:9]/o2$mean_resp_sum[1]), (o2$mean_resp_sum[10:18]/o2$mean_resp_sum[10]))
 o2$norm.se <- o2$sd_resp/100
+o2$time<-as.numeric(o2$time)
+o2$time<-(o2$time*3)-3 #fix axis
+
+fits <- lmList(norm ~ time | experiment, data=o2) #get slopes for trendlines 
+fits
 
 ggplot(data=o2, aes(x=time, y=norm, col=experiment))+
   geom_point()+
-
-  geom_errorbar(aes(ymin=norm-norm.se, ymax=norm+norm.se), width=.2, 
+  geom_abline(intercept=1.028, slope=-0.0214, colour="coral")+
+  geom_abline(intercept=0.961, slope=-0.0185, colour="darkslategray")+
+  geom_errorbar(aes(ymin=norm-norm.se, ymax=norm+norm.se), width=.5, 
                 position=position_dodge(0.05))+
   scale_color_manual(name="Experiment",values=c("coral","darkslategray"),
                      labels = c("I", "II"))+
   labs(x='Time (hours)', y=expression(paste('Normalised ',O[2],' concentration')))+
+  scale_x_continuous(breaks=seq(0,24, by=6))+
   theme_cowplot()+
   theme(text=element_text(size=14),legend.position=c(0.8,0.8))
 
@@ -498,11 +514,11 @@ volume<- c(0.01,0.02,0.02, 0.02, 0.01, 0.02, 0.02, 0.02, 0.01, 0.02, 0.02, 0.02)
 coef.mod1$volume <-volume
 coef.mod1$consumption<- coef.mod1$slope*coef.mod1$volume
 #result: O2 consumption in umol/h
-mean(coef.mod1$consumption) #0.115 umol h-1
-sd(coef.mod1$consumption) #0.044
+mean(coef.mod1$consumption) #0.110 umol h-1
+sd(coef.mod1$consumption) #0.040
 
-mean(coef.mod1$consumption[1:12])#[1] 0.095036
-mean(coef.mod1$consumption[13:24])#[1] 0.1347879
+mean(coef.mod1$consumption[1:12])#[1] 0.092
+mean(coef.mod1$consumption[13:24])#[1] 0.128
 sd(coef.mod1$consumption[1:12])
 sd(coef.mod1$consumption[13:24])
 
@@ -583,11 +599,12 @@ z_PS1=w_PS1/k #z*
 z_PS2=w_PS2/k
 
 (b_PS1* poc_PS1) * exp((100-1000)/z_PS1)
-(b_PS1* poc_PS1) * exp((100-2000)/z_PS1)
-(b_PS1* poc_PS1) * exp((100-3800)/z_PS1)
-
 (b_PS2* poc_PS2) * exp((100-1000)/z_PS2)
+
+(b_PS1* poc_PS1) * exp((100-2000)/z_PS1)
 (b_PS2* poc_PS2) * exp((100-2000)/z_PS2)
+
+(b_PS1* poc_PS1) * exp((100-3800)/z_PS1)
 (b_PS2* poc_PS2) * exp((100-3800)/z_PS2)
 
 # "Higher mortality" scenario
@@ -602,49 +619,12 @@ z_PS1=w_PS1/k #z*
 z_PS2=w_PS2/k
 
 (b_PS1* poc_PS1) * exp((100-1000)/z_PS1)
-(b_PS1* poc_PS1) * exp((100-2000)/z_PS1)
-(b_PS1* poc_PS1) * exp((100-3800)/z_PS1)
-
 (b_PS2* poc_PS2) * exp((100-1000)/z_PS2)
-(b_PS2* poc_PS2) * exp((100-2000)/z_PS2)
-(b_PS2* poc_PS2) * exp((100-3800)/z_PS2)
 
-#"Higher microbial decomposition" scenario
-w_PS1=797 #sinking speed
-w_PS2=671
-poc_PS1=75.5 #carbon standing stock
-poc_PS2=70
-b_PS1=0.021 #mortality rates
-b_PS2=0.023
-k=0.35  #bacterial decomposition
-z_PS1=w_PS1/k #z*
-z_PS2=w_PS2/k
-
-(b_PS1* poc_PS1) * exp((100-1000)/z_PS1)
 (b_PS1* poc_PS1) * exp((100-2000)/z_PS1)
-(b_PS1* poc_PS1) * exp((100-3800)/z_PS1)
-
-(b_PS2* poc_PS2) * exp((100-1000)/z_PS2)
 (b_PS2* poc_PS2) * exp((100-2000)/z_PS2)
-(b_PS2* poc_PS2) * exp((100-3800)/z_PS2)
 
-#"Lower microbial decomposition" scenario
-w_PS1=797 #sinking speed
-w_PS2=671
-poc_PS1=75.5 #carbon standing stock
-poc_PS2=70
-b_PS1=0.021 #mortality rates
-b_PS2=0.023
-k=0.02  #bacterial decomposition
-z_PS1=w_PS1/k #z*
-z_PS2=w_PS2/k
-
-(b_PS1* poc_PS1) * exp((100-1000)/z_PS1)
-(b_PS1* poc_PS1) * exp((100-2000)/z_PS1)
 (b_PS1* poc_PS1) * exp((100-3800)/z_PS1)
-
-(b_PS2* poc_PS2) * exp((100-1000)/z_PS2)
-(b_PS2* poc_PS2) * exp((100-2000)/z_PS2)
 (b_PS2* poc_PS2) * exp((100-3800)/z_PS2)
 
 #"Lower sinking velocity" scenario
@@ -659,9 +639,51 @@ z_PS1=w_PS1/k #z*
 z_PS2=w_PS2/k
 
 (b_PS1* poc_PS1) * exp((100-1000)/z_PS1)
-(b_PS1* poc_PS1) * exp((100-2000)/z_PS1)
-(b_PS1* poc_PS1) * exp((100-3800)/z_PS1)
-
 (b_PS2* poc_PS2) * exp((100-1000)/z_PS2)
+
+(b_PS1* poc_PS1) * exp((100-2000)/z_PS1)
 (b_PS2* poc_PS2) * exp((100-2000)/z_PS2)
+
+(b_PS1* poc_PS1) * exp((100-3800)/z_PS1)
 (b_PS2* poc_PS2) * exp((100-3800)/z_PS2)
+
+#"Higher microbial decomposition" scenario
+w_PS1=797 #sinking speed
+w_PS2=671
+poc_PS1=75.5 #carbon standing stock
+poc_PS2=70
+b_PS1=0.021 #mortality rates
+b_PS2=0.023
+k=0.16  #bacterial decomposition
+z_PS1=w_PS1/k #z*
+z_PS2=w_PS2/k
+
+(b_PS1* poc_PS1) * exp((100-1000)/z_PS1)
+(b_PS2* poc_PS2) * exp((100-1000)/z_PS2)
+
+(b_PS1* poc_PS1) * exp((100-2000)/z_PS1)
+(b_PS2* poc_PS2) * exp((100-2000)/z_PS2)
+
+(b_PS1* poc_PS1) * exp((100-3800)/z_PS1)
+(b_PS2* poc_PS2) * exp((100-3800)/z_PS2)
+
+#"Lower microbial decomposition" scenario
+w_PS1=797 #sinking speed
+w_PS2=671
+poc_PS1=75.5 #carbon standing stock
+poc_PS2=70
+b_PS1=0.021 #mortality rates
+b_PS2=0.023
+k=0.02  #bacterial decomposition
+z_PS1=w_PS1/k #z*
+z_PS2=w_PS2/k
+
+(b_PS1* poc_PS1) * exp((100-1000)/z_PS1)
+(b_PS2* poc_PS2) * exp((100-1000)/z_PS2)
+
+(b_PS1* poc_PS1) * exp((100-2000)/z_PS1)
+(b_PS2* poc_PS2) * exp((100-2000)/z_PS2)
+
+(b_PS1* poc_PS1) * exp((100-3800)/z_PS1)
+(b_PS2* poc_PS2) * exp((100-3800)/z_PS2)
+
