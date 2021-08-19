@@ -1,7 +1,5 @@
 #Analysis for carcass publication
 
-#setwd("C:/Users/shalfter/Documents/Outputs/2 Under_review/Carcasses/R/For_Github")
-
 #open libraries
 library(ncdf4) #opening ncdf files & extract variables
 library(tidyverse) #plotting and data wrangling
@@ -345,7 +343,7 @@ speed%>%
 ####Bacterial decomposition - calculations####
 # Code by Emma Cavan, shortened by Svenja Halfter
 #experiment on the 29092018 - batch 1
-setwd("~/Outputs/2 Under_review/Carcasses/R/For_Github/batch_1")
+setwd("~/batch_1")
 t0 <- read.csv("t0.csv", header=T)
 t1 <- read.csv("t1.csv", header=T)
 t2 <- read.csv("t2.csv", header=T)
@@ -386,7 +384,7 @@ T8 <- rep('T8', 48)
 resp1$t <- c(T0, T1, T2, T3, T4, T5, T6, T7,T8)
 
 #experiment on the 01/10/2018 - batch 2
-setwd("~/Outputs/2 Under_review/Carcasses/R/For_Github/batch_2")
+setwd("~/batch_2")
 t0 <- read.csv("t0.csv", header=T)
 t1 <- read.csv("t1.csv", header=T)
 t2 <- read.csv("t2.csv", header=T)
@@ -451,7 +449,7 @@ Slopes2<- coef.mod1[13:24,2]
 t.test(Slopes1, Slopes2, paired = F, var.equal = F) #sign difference between batches
 
 # compare O2 decrease to copepod biomass 
-setwd("C:/Users/shalfter/Documents/Outputs/2 Under_review/Carcasses/R/For_Github")
+setwd("original_working_directory") #set back to previous working directory
 cop<- read.csv("Copepods_respiration.csv", header=T)
 cop$slopes <- coef.mod1$slope #add in coeff O2 uptakes
 
