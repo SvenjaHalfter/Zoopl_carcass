@@ -1,5 +1,7 @@
 #Analysis for carcass publication
 
+#setwd("C:/Users/shalfter/Documents/Outputs/2 Under_review/Carcasses/R/For_Github")
+
 #open libraries
 library(ncdf4) #opening ncdf files & extract variables
 library(tidyverse) #plotting and data wrangling
@@ -103,7 +105,10 @@ yx$ID<-c("PS1", "PS2")
 mapSOTS <-b + layer(sp.polygons(bPols, fill='darkslategray')) + 
   layer(sp.points(yx, pch=16, col='darkorange2', cex=2), columns = 1)+
   layer(sp.text(coordinates(yx),txt=yx$ID, col="white",pos=1, cex=2))
+#tiff("Figure_1a.tiff", units="in", width=600/72, height=500/72, res=300)
+png("Figure_1a.png", units="in", width=600/72, height=500/72, res=300)
 mapSOTS
+dev.off()
 
 ####Figure 1 - CTD####
 
@@ -112,18 +117,68 @@ ctd1 <- read.csv('CTD_stationPS1.csv', header=T) #CTD data station PS1
 ctd2 <- read.csv('CTD_stationPS2.csv', header=T) #CTD data station PS2
 chl <- read.csv('Chlorophyll_measured.csv', header=T) #Chlorophyll data from Niskin 
 
+#CTD data - Temperature and salinity
+#Plotting PS1
+#par(mfrow=c(1,3), mar=c(12,11,7,1))
+#par(mfrow=c(1,2),mar=c(8,9,7,3)) #extra margin room mar(bottom, left, top, right)
+
+#tiff("Figure_1b.tiff", units="in", width=1000/72, height=500/72, res=300)
+png("Figure_1b.png", units="in", width=1000/72, height=500/72, res=300)
+
+par(mfrow=c(1,4),mar=c(11,7,7,3)) 
+
+plot(y=ctd1$Pressure, x=ctd1$Temperature,type= 'b', pch=16,
+     col="darkorange2", lwd=1, cex=1,ylim=c(1000,0), ylab="", xlab='', 
+     xaxt='n', yaxt='n', cex.axis=2, cex.lab=2) 
+title(ylab='Depth (m)', mgp=c(4,1,0),cex.lab=2.5)
+axis(3, at=seq(5,15,2.5), cex.axis=2)
+axis(2, labels=FALSE)
+mtext(expression("Temperature ("*~degree*C*")"), 3, line = 3.5, cex=2,
+      col="darkorange2")
+text(y=seq(1000, 0, -200),cex=2,
+     par('usr')[1], pos=2,labels=as.vector(c(1000 , 800 , 600 , 400 ,200, 0 )),srt=0, 
+     xpd=TRUE)
+# add Salinity
+par(new=T)
+plot(y=ctd1$Pressure, x=ctd1$Salinity, type='b', pch=17,
+     col="darkslategray",lwd=1, cex=1,axes=F, xlab='', ylab='', ylim=c(1000,0), 
+     xlim=c(32,35))
+axis(1, at=seq(32,35,0.5), cex.axis=2, col="darkslategray", col.axis="darkslategray")
+mtext(expression(paste('Salinity')), 1, line=4.5, cex=2, 
+      col="darkslategray")
+
+#Plotting PS2
+plot(y=ctd2$Pressure, x=ctd2$Temperature,type= 'b', pch=16,
+     col="darkorange2", lwd=1, cex=1,ylim=c(1000,0), ylab="", xlab='', 
+     xaxt='n', yaxt='n', cex.axis=2, cex.lab=2) 
+#title(ylab='Depth (m)', mgp=c(4,1,0),cex.lab=2)
+axis(3, at=seq(5,15,2.5), cex.axis=2)
+axis(2, labels=FALSE)
+mtext(expression("Temperature ("*~degree*C*")"), 3, line = 3.5, cex=2,
+      col="darkorange2")
+text(y=seq(1000, 0, -200),cex=2,
+     par('usr')[1], pos=2,labels=as.vector(c(1000 , 800 , 600 , 400 ,200, 0 )),srt=0, 
+     xpd=TRUE)
+# add Salinity
+par(new=T)
+plot(y=ctd2$Pressure, x=ctd2$Salinity, type='b', pch=17,
+     col="darkslategray",lwd=1, cex=1,axes=F, xlab='', ylab='', ylim=c(1000,0), 
+     xlim=c(32,35))
+axis(1, at=seq(32,35,0.5), cex.axis=2, col="darkslategray", col.axis="darkslategray")
+mtext(expression(paste('Salinity')), 1, line=4.5, cex=2, 
+      col="darkslategray")
 
 #Plotting PS1
 #Using base R instead of ggplot2 because it deals better with several axes
-par(mfrow=c(1,3), mar=c(12,11,7,1)) #extra margin room mar(bottom, left, top, right)
+#par(mfrow=c(1,3), mar=c(12,11,7,1)) #extra margin room mar(bottom, left, top, right)
 
 plot(poc$CperL[poc$Station=="PI"], poc$Depth[poc$Station=="PI"],type= 'b', pch=16,
      col="darkslategray", lwd=2, cex=2,ylim=c(200,0), ylab="", xlab='', 
      xaxt='n', yaxt='n', cex.axis=2, cex.lab=2) 
-title(ylab='Depth (m)', mgp=c(4,1,0),cex.lab=2)
+#title(ylab='Depth (m)', mgp=c(4,1,0),cex.lab=2)
 axis(3, at=seq(0,30,5), cex.axis=2)
 axis(2, labels=FALSE)
-mtext(expression(paste('POC (',mu,'g L'^'-1'*')')), 3, line = 3.5, cex=1.5,
+mtext(expression(paste('POC (',mu,'g L'^'-1'*')')), 3, line = 3.5, cex=2,
       col="darkslategray")
 text(y=seq(200, 0, -50),cex=2,
      par('usr')[1], pos=2,labels=as.vector(c(200 , 150 , 100 , 50 ,0 )),srt=0, 
@@ -134,16 +189,16 @@ plot(poc$NperL[poc$Station=="PI"], poc$Depth[poc$Station=="PI"], type='b', pch=1
      col="darkslategray4",lwd=2, cex=2,axes=F, xlab='', ylab='', ylim=c(200,0), 
      xlim=c(2.5,5))
 axis(1, at=seq(2.5,5,0.5), cex.axis=2, col="darkslategray4", col.axis="darkslategray4")
-mtext(expression(paste('PON (',mu,'g L'^'-1'*')')), 1, line=3.5, cex=1.5, 
+mtext(expression(paste('PON (',mu,'g L'^'-1'*')')), 1, line=4.5, cex=2, 
       col="darkslategray4")
 # add chlorophyll
 par(new=T)
 plot(chl$Chl..ug.l.[chl$CTD.ID=='CTD 23'], chl$Depth[chl$CTD.ID=='CTD 23'], 
      type='b', col="coral", pch=18, lwd=2,cex=2, axes=F, xlab='', ylab='', ylim=c(200,0),
      xlim=c(0, 0.5))
-axis(1, at=seq(0,0.5, 0.05), cex.axis=2, line=5, col="darkorange2", 
+axis(1, at=seq(0,0.5, 0.05), cex.axis=2, line=6, col="darkorange2", 
      col.axis="darkorange2")
-mtext(expression(paste('Chlorophyll (',mu,'g L'^'-1'*')')), 1, line=9, cex=1.5, 
+mtext(expression(paste('Chlorophyll (',mu,'g L'^'-1'*')')), 1, line=10, cex=2, 
       col="darkorange2")
 #add euphotic zone
 abline(h=126, col="black", lty=2)
@@ -152,10 +207,10 @@ abline(h=126, col="black", lty=2)
 plot(poc$CperL[poc$Station=="PII"], poc$Depth[poc$Station=="PII"],type= 'b', pch=16,
      col="darkslategray", lwd=2, cex=2,ylim=c(200,0), ylab="", xlab='', 
      xaxt='n', yaxt='n', cex.axis=2, cex.lab=2) 
-title(ylab='Depth (m)', mgp=c(4,1,0),cex.lab=2)
+#title(ylab='Depth (m)', mgp=c(4,1,0),cex.lab=2)
 axis(3, at=seq(0,30,5), cex.axis=2)
 axis(2, labels=FALSE)
-mtext(expression(paste('POC (',mu,'g L'^'-1'*')')), 3, line = 3.5, cex=1.5,
+mtext(expression(paste('POC (',mu,'g L'^'-1'*')')), 3, line = 3.5, cex=2,
       col="darkslategray")
 text(y=seq(200, 0, -50),cex=2,
      par('usr')[1], pos=2,labels=as.vector(c(200 , 150 , 100 , 50 ,0 )),srt=0, 
@@ -166,20 +221,30 @@ plot(poc$NperL[poc$Station=="PII"], poc$Depth[poc$Station=="PII"], type='b', pch
      col="darkslategray4",lwd=2, cex=2,axes=F, xlab='', ylab='', ylim=c(200,0), 
      xlim=c(2.5,5))
 axis(1, at=seq(2.5,5,0.5), cex.axis=2, col="darkslategray4", col.axis="darkslategray4")
-mtext(expression(paste('PON (',mu,'g L'^'-1'*')')), 1, line=3.5, cex=1.5, 
+mtext(expression(paste('PON (',mu,'g L'^'-1'*')')), 1, line=4.5, cex=2, 
       col="darkslategray4")
 # add chlorophyll
 par(new=T)
 plot(chl$Chl..ug.l.[chl$CTD.ID=='CTD 19'], chl$Depth[chl$CTD.ID=='CTD 19'], 
      type='b', col="coral", pch=18, lwd=2,cex=2, axes=F, xlab='', ylab='', ylim=c(200,0),
      xlim=c(0, 0.5))
-axis(1, at=seq(0,0.5, 0.05), cex.axis=2, line=5, col="darkorange2", 
+axis(1, at=seq(0,0.5, 0.05), cex.axis=2, line=6, col="darkorange2", 
      col.axis="darkorange2")
-mtext(expression(paste('Chlorophyll (',mu,'g L'^'-1'*')')), 1, line=9, cex=1.5, 
+mtext(expression(paste('Chlorophyll (',mu,'g L'^'-1'*')')), 1, line=10, cex=2, 
       col="darkorange2")
 #add euphotic zone
 abline(h=116, col="black", lty=2)
 
+# ggsave(
+#   "Figure_1b.tiff",
+#   plot = last_plot(),
+#   width = 500/72,
+#   height = 400/72,
+#   units = c("in"),
+#   dpi = 300)
+
+
+dev.off()
 
 ####Environmental conditions 0-200 m####
 #Summarise temperature and salinity
@@ -199,7 +264,7 @@ ctd2%>%
 
 #calculate MLD (following Hosoda 2010, delta T=0.2 C)
 ctd1%>%
-  filter(Temperature<=9.227)
+  filter(Temperature<=(9.227))
 ctd2%>%
   filter(Temperature<=10.415)
 
@@ -225,7 +290,7 @@ Species1<-ggplot(length)+
   annotate(geom="text", x=1.6, y=60, label="CIV", size=8)+
   annotate(geom="text", x=2.25, y=60, label="CV", size=8)+
   annotate(geom="text", x=3.3, y=60, label="CVI (adult)", size=8)+
-  theme_cowplot(12)+
+  theme_cowplot(16)+
   theme(text=element_text(size = 20), axis.text = element_text(size=20), 
         axis.title = element_text(size=20))+
   coord_cartesian(xlim=c(1.5,4.0), ylim=c(0,60))
@@ -239,7 +304,7 @@ Species2<-ggplot(length)+
   annotate(geom="text", x=1.6, y=60, label="CIV", size=8)+
   annotate(geom="text", x=2.25, y=60, label="CV", size=8)+
   annotate(geom="text", x=3.3, y=60, label="CVI (adult)", size=8)+
-  theme_cowplot(12)+
+  theme_cowplot(14)+
   theme(text=element_text(size = 20), axis.text = element_text(size=20), 
         axis.title = element_text(size=20))+
   coord_cartesian(xlim=c(1.5,4.0), ylim=c(0,60))
@@ -248,7 +313,7 @@ legend.plot <- ggplot(length)+
   geom_histogram(aes(x=PS1, fill=Daytime), position="dodge")+
   scale_fill_manual(name= "Sampling", labels= c("Day", "Night"), values=c("coral", "darkslategray"))+
   labs(title="PS1", x='',  y="Frequency")+
-  theme_cowplot(12)+
+  theme_cowplot(14)+
   theme(text=element_text(face="bold", size=22))+
   coord_cartesian(xlim=c(1.5,4.0), ylim=c(0,60))
 
@@ -256,7 +321,21 @@ right_side <- plot_grid(Species1, Species2, labels=c('a', 'b'), label_size=20,nc
 
 legend <- get_legend(
   legend.plot + theme(legend.box.margin = margin(0, 0, 0, 14)))
-plot_grid(right_side, legend, rel_widths = c(3, .4))
+plot_grid(right_side, legend, rel_widths = c(3, .5))
+ggsave(
+  "Figure_2.tiff",
+  plot = last_plot(),
+  width = 900/72,
+  height = 600/72,
+  units = c("in"),
+  dpi = 300)
+ggsave(
+  "Figure_2.png",
+  plot = last_plot(),
+  width = 900/72,
+  height = 600/72,
+  units = c("in"),
+  dpi = 300)
 
 ####Carbon standing stock in N.tonsus####
 #Using the equations calculated in figure 3
@@ -289,7 +368,7 @@ plotA<-ggplot(data=carbon, aes(dry.weight.ug, C..ug.))+
   geom_point(size=2)+
   lims(y=c(90,200))+
   labs(x=expression(paste('Dry weight (',mu,'g)')), y=expression(paste('Carbon (',mu,'g)')))+
-  geom_smooth(method="lm", se=F, colour="darkslategray4")+
+  geom_smooth(method="lm", se=F, colour="darkslategray4", size=2)+
   annotate(geom="text", label="p < 0.01", x=500,y=90, size=6)+
   annotate(geom="text", label=expression(paste('R'^'2'=='0.69')), x=500, y=100, size=6)+
   theme_cowplot(12)+
@@ -305,7 +384,7 @@ plotB<-ggplot(data=carbon, aes(length..mm., C..ug.))+
   geom_point(size=2)+
   lims(x=c(2.8,3.6),y=c(90,200))+
   labs(x="Prosome length (mm)", y=expression(paste('Carbon (',mu,'g)')))+
-  geom_smooth(method="lm", se=F, colour="darkslategray4")+
+  geom_smooth(method="lm", se=F, colour="darkslategray4", size=2)+
   annotate(geom="text", label="p < 0.01", x=3.45,y=90, size=6)+
   annotate(geom="text", label=expression(paste('R'^'2'=='0.24')), x=3.45, y=100, size=6)+
   theme_cowplot(12)+
@@ -321,7 +400,7 @@ plotC<-ggplot(data=speed, aes(size..mm., speed..m.min.))+
   geom_point(size=2)+
   lims(x=c(2.8,3.6),y=c(0,0.8))+
   labs(x="Prosome length (mm)", y=expression(paste('Sinking velocity (m min '^'-1'*')')))+
-  geom_smooth(method="lm", se=F, colour="darkslategray4")+
+  geom_smooth(method="lm", se=F, colour="darkslategray4",size=2)+
   annotate(geom="text", label="p < 0.01", x=3.45,y=0.0, size=6)+
   annotate(geom="text", label=expression(paste('R'^'2'=='0.07')), x=3.45, y=0.075, size=6)+
   theme_cowplot(12)+
@@ -329,6 +408,20 @@ plotC<-ggplot(data=speed, aes(size..mm., speed..m.min.))+
         axis.title = element_text(size=20))
 
 plot_grid(plotA, plotB, plotC, labels= 'auto', nrow=1, label_size = 20)
+ggsave(
+  "Figure_3.tiff",
+  plot = last_plot(),
+  width = 900/72,
+  height = 600/72,
+  units = c("in"),
+  dpi = 300)
+ggsave(
+  "Figure_3.png",
+  plot = last_plot(),
+  width = 900/72,
+  height = 600/72,
+  units = c("in"),
+  dpi = 300)
 #D prosome length vs. dry weigth (not plotted)
 c<-lm((carbon$dry.weight.ug)~(carbon$length..mm.)); summary(c) 
 carbon_mod<-seq(0,0.6,0.1)
@@ -343,7 +436,7 @@ speed%>%
 ####Bacterial decomposition - calculations####
 # Code by Emma Cavan, shortened by Svenja Halfter
 #experiment on the 29092018 - batch 1
-setwd("~/batch_1")
+setwd("~/Outputs/2 Under_review/Carcasses/R/For_Github/batch_1")
 t0 <- read.csv("t0.csv", header=T)
 t1 <- read.csv("t1.csv", header=T)
 t2 <- read.csv("t2.csv", header=T)
@@ -384,7 +477,7 @@ T8 <- rep('T8', 48)
 resp1$t <- c(T0, T1, T2, T3, T4, T5, T6, T7,T8)
 
 #experiment on the 01/10/2018 - batch 2
-setwd("~/batch_2")
+setwd("~/Outputs/2 Under_review/Carcasses/R/For_Github/batch_2")
 t0 <- read.csv("t0.csv", header=T)
 t1 <- read.csv("t1.csv", header=T)
 t2 <- read.csv("t2.csv", header=T)
@@ -449,7 +542,7 @@ Slopes2<- coef.mod1[13:24,2]
 t.test(Slopes1, Slopes2, paired = F, var.equal = F) #sign difference between batches
 
 # compare O2 decrease to copepod biomass 
-setwd("original_working_directory") #set back to previous working directory
+setwd("C:/Users/shalfter/Documents/Outputs/2 Under_review/Carcasses/R/For_Github")
 cop<- read.csv("Copepods_respiration.csv", header=T)
 cop$slopes <- coef.mod1$slope #add in coeff O2 uptakes
 
@@ -494,16 +587,30 @@ fits
 
 ggplot(data=o2, aes(x=time, y=norm, col=experiment))+
   geom_point()+
-  geom_abline(intercept=1.028, slope=-0.0214, colour="coral")+
-  geom_abline(intercept=0.961, slope=-0.0185, colour="darkslategray")+
-  geom_errorbar(aes(ymin=norm-norm.se, ymax=norm+norm.se), width=.5, 
+  geom_abline(intercept=1.028, slope=-0.0214, colour="coral",lwd=1)+
+  geom_abline(intercept=0.961, slope=-0.0185, colour="darkslategray", lwd=1)+
+  geom_errorbar(aes(ymin=norm-norm.se, ymax=norm+norm.se), width=1, size=1, 
                 position=position_dodge(0.05))+
   scale_color_manual(name="Experiment",values=c("coral","darkslategray"),
                      labels = c("I", "II"))+
   labs(x='Time (hours)', y=expression(paste('Normalised ',O[2],' concentration')))+
   scale_x_continuous(breaks=seq(0,24, by=6))+
-  theme_cowplot()+
+  theme_cowplot(18)+
   theme(text=element_text(size=14),legend.position=c(0.8,0.8))
+ggsave(
+  "Figure_4.tiff",
+  plot = last_plot(),
+  width = 600/72,
+  height = 350/72,
+  units = c("in"),
+  dpi = 300)
+ggsave(
+  "Figure_4.png",
+  plot = last_plot(),
+  width = 600/72,
+  height = 350/72,
+  units = c("in"),
+  dpi = 300)
 
 ####Calculation of k####
 
