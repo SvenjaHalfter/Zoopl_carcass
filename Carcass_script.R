@@ -118,15 +118,11 @@ ctd2 <- read.csv('CTD_stationPS2.csv', header=T) #CTD data station PS2
 chl <- read.csv('Chlorophyll_measured.csv', header=T) #Chlorophyll data from Niskin 
 
 #CTD data - Temperature and salinity
-#Plotting PS1
-#par(mfrow=c(1,3), mar=c(12,11,7,1))
-#par(mfrow=c(1,2),mar=c(8,9,7,3)) #extra margin room mar(bottom, left, top, right)
 
-#tiff("Figure_1b.tiff", units="in", width=1000/72, height=500/72, res=300)
+#PS1
 png("Figure_1b.png", units="in", width=1000/72, height=500/72, res=300)
 
 par(mfrow=c(1,4),mar=c(11,7,7,3)) 
-
 plot(y=ctd1$Pressure, x=ctd1$Temperature,type= 'b', pch=16,
      col="darkorange2", lwd=1, cex=1,ylim=c(1000,0), ylab="", xlab='', 
      xaxt='n', yaxt='n', cex.axis=2, cex.lab=2) 
@@ -167,11 +163,9 @@ plot(y=ctd2$Pressure, x=ctd2$Salinity, type='b', pch=17,
 axis(1, at=seq(32,35,0.5), cex.axis=2, col="darkslategray", col.axis="darkslategray")
 mtext(expression(paste('Salinity')), 1, line=4.5, cex=2, 
       col="darkslategray")
-
-#Plotting PS1
-#Using base R instead of ggplot2 because it deals better with several axes
-#par(mfrow=c(1,3), mar=c(12,11,7,1)) #extra margin room mar(bottom, left, top, right)
-
+              
+# POC/PON/Chl a plots
+#PS1
 plot(poc$CperL[poc$Station=="PI"], poc$Depth[poc$Station=="PI"],type= 'b', pch=16,
      col="darkslategray", lwd=2, cex=2,ylim=c(200,0), ylab="", xlab='', 
      xaxt='n', yaxt='n', cex.axis=2, cex.lab=2) 
@@ -234,15 +228,6 @@ mtext(expression(paste('Chlorophyll (',mu,'g L'^'-1'*')')), 1, line=10, cex=2,
       col="darkorange2")
 #add euphotic zone
 abline(h=116, col="black", lty=2)
-
-# ggsave(
-#   "Figure_1b.tiff",
-#   plot = last_plot(),
-#   width = 500/72,
-#   height = 400/72,
-#   units = c("in"),
-#   dpi = 300)
-
 
 dev.off()
 
