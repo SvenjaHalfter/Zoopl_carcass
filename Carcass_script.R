@@ -1,6 +1,6 @@
 #Analysis for carcass publication
 
-#setwd("C:/Users/shalfter/Documents/Outputs/2 Under_review/Carcasses/R/For_Github")
+#setwd(Your_working_directory)
 
 #open libraries
 library(ncdf4) #opening ncdf files & extract variables
@@ -29,8 +29,8 @@ latmax<--40
 latmin<--50 
 
 file.exists("MODISA_chl.csv")#check if a csv file exists in working directory:
-# FALSE: continue below
-# TRUE: skip the data extraction and jump directly to plotting
+# FALSE: continue with line 35
+# TRUE: skip the data extraction and jump directly to plotting (line 68)
 # Create list (not necessary here, but useful when you have several files)
 f <- list.files(".", pattern="*.L3m_MO_CHL_chlor_a_4km.nc",full.names=F)
 var<-"chlor_a"# variable of interest
