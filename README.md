@@ -8,7 +8,7 @@ Data files include:
 - Remote-sensed data on **ocean colour** as a proxy for chlorophyll a: MODISA_chl.csv
 - Measured **chlorophyll a** in the upper water column (0-200 m): Chlorophyll_measured.csv
 - Sinking **particle flux** data from the sediment traps at SOTS (Southern Ocean Time Series) site: IMOS_ABOS-SOTS_KF_20180322_SAZ47_FV01_SAZ47-20-2018_PARFLUX-Mark78H-21_END-20180322_C-20200416.nc
-- **POC/PON** content of the upper water column (0-200 m), measured by water fitration of CTD sampler water: POM_measured
+- **POC/PON** content of the upper water column (0-200 m), measured by water fitration of CTD-sampled water: POM_measured
 - **Prosome length** of the collected copepod *Neocalanus tonsus*: Prosome_length_sample.csv
 - The measurements of **copepod prosome length, dry weight and carbon content**: Copepod_carbon.csv
 - The measured **sinking velocity** by copepod carcasses: Sinking_speed.csv
