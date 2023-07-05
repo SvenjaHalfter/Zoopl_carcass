@@ -14,4 +14,4 @@ Data files include:
 - The measured **sinking velocity** by copepod carcasses: Sinking_speed.csv
 - **Oxygen measurements** every 4 hours over a time of 24 hours in two batches (replicates): batch_1 & batch_2
 
-For questions or comments, please pull a request or contact me under Svenja.Halfter@utas.edu.au. 
+For questions or comments, please pull a request or contact me under Svenja.Halfter@niwa.co.nz. 
